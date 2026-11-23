@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Рисовалка</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="board"></canvas>
+<div class="toolbar">
+  <button id="brush" type="button" class="tool active" title="Кисть">✏️</button>
+  <button id="eraser" type="button" class="tool" title="Ластик">🧽</button>
+  <div class="palette">
+    <button type="button" class="swatch" data-color="#000000" style="background:#000000" title="Чёрный"></button>
+    <button type="button" class="swatch" data-color="#e53935" style="background:#e53935" title="Красный"></button>
+    <button type="button" class="swatch" data-color="#fb8c00" style="background:#fb8c00" title="Оранжевый"></button>
+    <button type="button" class="swatch" data-color="#43a047" style="background:#43a047" title="Зелёный"></button>
+    <button type="button" class="swatch" data-color="#1e88e5" style="background:#1e88e5" title="Синий"></button>
+    <button type="button" class="swatch" data-color="#8e24aa" style="background:#8e24aa" title="Фиолетовый"></button>
+  </div>
+  <input id="color" type="color" value="#000000" aria-label="Свой цвет">
+  <input id="size" type="range" min="1" max="60" value="6" aria-label="Толщина">
+  <button id="undo" type="button" title="Отменить">↶</button>
+  <button id="redo" type="button" title="Повторить">↷</button>
+  <button id="clear" type="button" title="Очистить">🗑</button>
+  <button id="bg" type="button" title="Фон">◐</button>
+  <button id="save" type="button" title="Сохранить">💾</button>
+</div>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
