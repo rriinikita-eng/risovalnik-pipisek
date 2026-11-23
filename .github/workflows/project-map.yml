@@ -1,0 +1,67 @@
+name: project-map
+
+# Карта проекта для бота (этап 0.4). Запускается только вручную: бот вызывает workflow_dispatch
+# через GitHub API. Код только читает, в репозиторий ничего не пишет.
+run-name: project-map ${{ inputs.request_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Полный SHA коммита, для которого строится карта
+        required: true
+        type: string
+      request_id:
+        description: Метка запроса, по ней бот находит этот запуск
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-map:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      # Входы приходят в окружение, а не подставляются в текст команды: так их нельзя использовать
+      # для внедрения кода в shell.
+      - name: Проверка входов
+        env:
+          SHA: ${{ inputs.sha }}
+          REQUEST_ID: ${{ inputs.request_id }}
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "sha должен быть полным SHA из 40 символов"; exit 1; }
+          [[ "$REQUEST_ID" =~ ^[0-9a-f]{32}$ ]] || { echo "request_id должен быть из 32 символов a-f0-9"; exit 1; }
+
+      # Скрипт карты (.ox/projectmap.py) берётся из основной ветки (куда указывает запуск), а проект на нужном коммите
+      # лежит отдельно: так карту можно строить для любой ветки, даже если в ней нет скрипта.
+      - name: Скрипт карты из основной ветки
+        uses: actions/checkout@v6
+        with:
+          path: tool
+          persist-credentials: false
+
+      - name: Код проекта на нужном коммите
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.sha }}
+          path: target
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Построение карты
+        env:
+          SHA: ${{ inputs.sha }}
+        run: python tool/.ox/projectmap.py --root target --sha "$SHA" --out project-map.json
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: project-map
+          path: project-map.json
+          retention-days: 1
+          if-no-files-found: error

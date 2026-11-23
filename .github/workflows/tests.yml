@@ -1,0 +1,68 @@
+name: tests
+
+# Стандартные автотесты для проекта, собранного ботом Ox Alpha Coder. Запускаются на push в main и на PR.
+# Push в остальные ветки не запускает их: ветки этапов проверяет бот через red-green, а минуты Actions в приватных
+# репозиториях ограничены тарифом. Устаревший запуск отменяется новым (concurrency).
+# pytest запускает и тесты на unittest. Если тестов нет, это не ошибка: бот напишет «тестов нет».
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements*.txt
+
+      - name: Установка зависимостей
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          elif [ -f requirements.txt ]; then
+            pip install -r requirements.txt pytest
+          else
+            pip install pytest
+          fi
+
+      # Код выхода 5 значит «тесты не найдены»: это зелёный результат без тестов.
+      - name: Автотесты
+        run: |
+          mkdir -p reports
+          set +e
+          pytest --junitxml=reports/junit.xml
+          CODE=$?
+          set -e
+          if [ "$CODE" -eq 5 ]; then
+            echo "Тестов нет"
+            [ -f reports/junit.xml ] || printf '<?xml version="1.0" encoding="utf-8"?><testsuites></testsuites>' > reports/junit.xml
+            exit 0
+          fi
+          exit "$CODE"
+
+      - name: Отчёт junit
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: junit-report
+          path: reports/junit.xml
+          if-no-files-found: ignore
+          retention-days: 14

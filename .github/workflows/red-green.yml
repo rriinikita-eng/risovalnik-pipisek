@@ -1,0 +1,126 @@
+name: red-green
+
+# Красное и зелёное для бота (этап 0.4, step18). Запускается только вручную: бот вызывает
+# workflow_dispatch через GitHub API. Код только читает, в репозиторий ничего не пишет, секретов нет.
+# red: pytest только по новым тестам, зелёное: весь набор. Итог работы pytest (код выхода) лежит
+# в meta.json, поэтому красные тесты не делают сам запуск неудачным: неудачным он бывает только
+# если отчёта нет.
+run-name: red-green ${{ inputs.request_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Полный SHA коммита ветки задачи
+        required: true
+        type: string
+      mode:
+        description: red (только новые тесты) или green (весь набор)
+        required: true
+        type: string
+      tests:
+        description: Новые тестовые файлы через пробел (для red обязательно)
+        required: false
+        default: ""
+        type: string
+      request_id:
+        description: Метка запроса, по ней бот находит этот запуск
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    # Одноразовая тестовая база для тестов проекта, как в tests.yml. Боевые данные не затрагиваются.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci_password_not_a_secret
+          POSTGRES_DB: ci_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      TEST_DATABASE_URL: postgresql://ci:ci_password_not_a_secret@localhost:5432/ci_test
+
+    steps:
+      # Входы приходят в окружение, а не подставляются в текст команды: так их нельзя использовать
+      # для внедрения кода в shell.
+      - name: Проверка входов
+        env:
+          SHA: ${{ inputs.sha }}
+          MODE: ${{ inputs.mode }}
+          TESTS: ${{ inputs.tests }}
+          REQUEST_ID: ${{ inputs.request_id }}
+        run: |
+          set -f
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "sha должен быть полным SHA из 40 символов"; exit 1; }
+          [[ "$REQUEST_ID" =~ ^[0-9a-f]{32}$ ]] || { echo "request_id должен быть из 32 символов a-f0-9"; exit 1; }
+          [[ "$MODE" == "red" || "$MODE" == "green" ]] || { echo "mode должен быть red или green"; exit 1; }
+          read -r -a LIST <<< "$TESTS"
+          if [[ "$MODE" == "red" && ${#LIST[@]} -eq 0 ]]; then echo "для red нужен список тестов"; exit 1; fi
+          [[ ${#LIST[@]} -le 20 ]] || { echo "слишком много тестовых файлов"; exit 1; }
+          for item in "${LIST[@]}"; do
+            [[ "$item" =~ ^tests/test_[A-Za-z0-9_]+\.py$ ]] || { echo "недопустимый путь теста"; exit 1; }
+          done
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements*.txt
+
+      - name: Установка зависимостей
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          elif [ -f requirements.txt ]; then
+            pip install -r requirements.txt pytest
+          else
+            pip install pytest
+          fi
+
+      - name: Тесты
+        env:
+          SHA: ${{ inputs.sha }}
+          MODE: ${{ inputs.mode }}
+          TESTS: ${{ inputs.tests }}
+        run: |
+          set -f
+          mkdir -p reports
+          ARGS=()
+          if [[ "$MODE" == "red" ]]; then read -r -a ARGS <<< "$TESTS"; fi
+          set +e
+          pytest "${ARGS[@]}" --continue-on-collection-errors --junitxml=reports/junit.xml
+          CODE=$?
+          set -e
+          printf '{"mode":"%s","sha":"%s","exit_code":%s}\n' "$MODE" "$SHA" "$CODE" > reports/meta.json
+          [[ -s reports/junit.xml ]] || { echo "pytest не создал отчёт"; exit 1; }
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: test-report
+          path: |
+            reports/junit.xml
+            reports/meta.json
+          retention-days: 1
+          if-no-files-found: error

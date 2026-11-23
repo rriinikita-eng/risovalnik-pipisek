@@ -1,0 +1,5 @@
+# Настройка pytest для проекта. Корень репозитория попадает в путь импорта,
+# поэтому тесты в tests/ видят модули проекта (import bot, from app import ...) без conftest.py.
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
