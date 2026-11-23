@@ -1,5 +1,5 @@
 # Ошибки GitHub Actions
-# Блоков ошибок: 3. Строка с ошибкой помечена >>>, вокруг неё контекст.
+# Блоков ошибок: 6. Строка с ошибкой помечена >>>, вокруг неё контекст.
 
 === 1 · задача 102 · https://github.com/rriinikita-eng/risovalnik-pipisek/actions/runs/45121130276 ===
         for path in ["/app/style.css", "/app/logic.js", "/app/app.js"]:
@@ -85,6 +85,105 @@ assert 404 == 200
  +  where 404 = <Response [404 Not Found]>.status_code
 >>> =================== 3 failed, 13 passed, 1 warning in 2.36s ====================
 ﻿2026-11-23T05:59:38.7969253Z ##[group]Run actions/upload-artifact@v6
+with:
+  name: test-report
+  path: reports/junit.xml
+reports/meta.json
+  retention-days: 1
+  if-no-files-found: error
+  compression-level: 6
+  overwrite: false
+  include-hidden-files: false
+env:
+  TEST_DATABASE_URL: ***localhost:5432/ci_test
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+
+=== 4 · задача 102 · https://github.com/rriinikita-eng/risovalnik-pipisek/actions/runs/45121484900 ===
+        for path in ["/app/style.css", "/app/logic.js", "/app/app.js"]:
+            r = client.get(path)
+>           assert r.status_code == 200, path
+E           AssertionError: /app/style.css
+E           assert 404 == 200
+E            +  where 404 = <Response [404 Not Found]>.status_code
+/home/runner/work/risovalnik-pipisek/risovalnik-pipisek/tests/test_ui.py:58: AssertionError
+=============================== warnings summary ===============================
+tests/test_app.py:15
+    from starlette.testclient import TestClient
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/runner/work/risovalnik-pipisek/risovalnik-pipisek/reports/junit.xml -
+=========================== short test summary info ============================
+FAILED tests/test_ui.py::test_toolbar_controls - assert False
+ +  where False = any(<generator object test_toolbar_controls.<locals>.<genexpr> at 0x7fb03379a260>)
+>>> FAILED tests/test_ui.py::test_scripts_and_style_linked - assert False
+ +  where False = any(<generator object test_scripts_and_style_linked.<locals>.<genexpr> at 0x7fb032ff7c60>)
+FAILED tests/test_ui.py::test_static_files_served - AssertionError: /app/style.css
+assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code
+=================== 3 failed, 18 passed, 1 warning in 0.73s ====================
+﻿2026-11-23T06:02:50.1876823Z ##[group]Run actions/upload-artifact@v6
+with:
+  name: test-report
+  path: reports/junit.xml
+reports/meta.json
+  retention-days: 1
+  if-no-files-found: error
+  compression-level: 6
+  overwrite: false
+  include-hidden-files: false
+
+=== 5 · задача 102 · https://github.com/rriinikita-eng/risovalnik-pipisek/actions/runs/45121484900 ===
+>           assert r.status_code == 200, path
+E           AssertionError: /app/style.css
+E           assert 404 == 200
+E            +  where 404 = <Response [404 Not Found]>.status_code
+/home/runner/work/risovalnik-pipisek/risovalnik-pipisek/tests/test_ui.py:58: AssertionError
+=============================== warnings summary ===============================
+tests/test_app.py:15
+    from starlette.testclient import TestClient
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/runner/work/risovalnik-pipisek/risovalnik-pipisek/reports/junit.xml -
+=========================== short test summary info ============================
+FAILED tests/test_ui.py::test_toolbar_controls - assert False
+ +  where False = any(<generator object test_toolbar_controls.<locals>.<genexpr> at 0x7fb03379a260>)
+FAILED tests/test_ui.py::test_scripts_and_style_linked - assert False
+ +  where False = any(<generator object test_scripts_and_style_linked.<locals>.<genexpr> at 0x7fb032ff7c60>)
+>>> FAILED tests/test_ui.py::test_static_files_served - AssertionError: /app/style.css
+assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code
+=================== 3 failed, 18 passed, 1 warning in 0.73s ====================
+﻿2026-11-23T06:02:50.1876823Z ##[group]Run actions/upload-artifact@v6
+with:
+  name: test-report
+  path: reports/junit.xml
+reports/meta.json
+  retention-days: 1
+  if-no-files-found: error
+  compression-level: 6
+  overwrite: false
+  include-hidden-files: false
+env:
+  TEST_DATABASE_URL: ***localhost:5432/ci_test
+
+=== 6 · задача 102 · https://github.com/rriinikita-eng/risovalnik-pipisek/actions/runs/45121484900 ===
+E            +  where 404 = <Response [404 Not Found]>.status_code
+/home/runner/work/risovalnik-pipisek/risovalnik-pipisek/tests/test_ui.py:58: AssertionError
+=============================== warnings summary ===============================
+tests/test_app.py:15
+    from starlette.testclient import TestClient
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/runner/work/risovalnik-pipisek/risovalnik-pipisek/reports/junit.xml -
+=========================== short test summary info ============================
+FAILED tests/test_ui.py::test_toolbar_controls - assert False
+ +  where False = any(<generator object test_toolbar_controls.<locals>.<genexpr> at 0x7fb03379a260>)
+FAILED tests/test_ui.py::test_scripts_and_style_linked - assert False
+ +  where False = any(<generator object test_scripts_and_style_linked.<locals>.<genexpr> at 0x7fb032ff7c60>)
+FAILED tests/test_ui.py::test_static_files_served - AssertionError: /app/style.css
+assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code
+>>> =================== 3 failed, 18 passed, 1 warning in 0.73s ====================
+﻿2026-11-23T06:02:50.1876823Z ##[group]Run actions/upload-artifact@v6
 with:
   name: test-report
   path: reports/junit.xml
