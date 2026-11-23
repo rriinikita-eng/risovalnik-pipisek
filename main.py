@@ -9,15 +9,23 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
-RENDER_EXTERNAL_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
-
 API_BASE = "https://api.telegram.org"
 
 
+def bot_token() -> str:
+    return os.environ.get("BOT_TOKEN", "")
+
+
+def webhook_secret() -> str:
+    return os.environ.get("WEBHOOK_SECRET", "")
+
+
+def render_external_url() -> str:
+    return os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+
+
 def api_url(method: str) -> str:
-    return f"{API_BASE}/bot{BOT_TOKEN}/{method}"
+    return f"{API_BASE}/bot{bot_token()}/{method}"
 
 
 def start_reply_markup() -> dict:
@@ -26,7 +34,7 @@ def start_reply_markup() -> dict:
             [
                 {
                     "text": "Открыть рисовалку",
-                    "web_app": {"url": RENDER_EXTERNAL_URL + "/app/"},
+                    "web_app": {"url": render_external_url() + "/app/"},
                 }
             ]
         ]
@@ -62,8 +70,9 @@ async def health(request: Request) -> PlainTextResponse:
 
 
 async def webhook(request: Request) -> PlainTextResponse:
+    secret = webhook_secret()
     token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
-    if not WEBHOOK_SECRET or token != WEBHOOK_SECRET:
+    if not secret or token != secret:
         return PlainTextResponse("forbidden", status_code=403)
     try:
         update = await request.json()
@@ -75,11 +84,13 @@ async def webhook(request: Request) -> PlainTextResponse:
 
 
 async def on_startup() -> None:
-    if not BOT_TOKEN or not RENDER_EXTERNAL_URL:
+    token = bot_token()
+    base = render_external_url()
+    if not token or not base:
         return
     payload = {
-        "url": RENDER_EXTERNAL_URL + "/webhook",
-        "secret_token": WEBHOOK_SECRET,
+        "url": base + "/webhook",
+        "secret_token": webhook_secret(),
     }
     try:
         async with httpx.AsyncClient(timeout=10) as client:
@@ -94,6 +105,7 @@ routes = [
     Route("/webhook", webhook, methods=["POST"]),
     Mount("/app", app=StaticFiles(directory="web", html=True, check_dir=False)),
 ]
+
 
 @asynccontextmanager
 async def lifespan(app: Starlette):
