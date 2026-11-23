@@ -20,20 +20,24 @@ def api_url(method: str) -> str:
     return f"{API_BASE}/bot{BOT_TOKEN}/{method}"
 
 
+def start_reply_markup() -> dict:
+    return {
+        "inline_keyboard": [
+            [
+                {
+                    "text": "Открыть рисовалку",
+                    "web_app": {"url": RENDER_EXTERNAL_URL + "/app/"},
+                }
+            ]
+        ]
+    }
+
+
 async def send_start_message(chat_id: int) -> None:
     payload = {
         "chat_id": chat_id,
         "text": "Открыть рисовалку",
-        "reply_markup": {
-            "inline_keyboard": [
-                [
-                    {
-                        "text": "Открыть рисовалку",
-                        "web_app": {"url": RENDER_EXTERNAL_URL + "/app/"},
-                    }
-                ]
-            ]
-        },
+        "reply_markup": start_reply_markup(),
     }
     async with httpx.AsyncClient(timeout=10) as client:
         response = await client.post(api_url("sendMessage"), json=payload)
