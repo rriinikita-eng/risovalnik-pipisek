@@ -1,0 +1,5 @@
+Проект: Рисовальник пиписек.
+Над чем работаем: MVP рисовалки как Telegram Mini App — полноэкранный холст, кисть и ластик, цвет и толщина, undo/redo до 20 шагов, очистка с подтверждением, сохранение PNG; без аккаунтов и облака, запуск через бота с кнопкой «Открыть рисовалку».
+Сделано: создан публичный репозиторий, утверждена спецификация задачи #102 v1, план нарезан на этапы; этапы 1–2 зелёные — Starlette-сервис с /health, защищённым webhook, кнопкой WebApp и static /app, плюс DOM-free модуль рисования; тесты 5/5 и 12/12.
+Герои и ассеты: героев нет; репозиторий https://github.com/rriinikita-eng/risovalnik-pipisek, docs/spec-task-102-v1.md, main.py, web/index.html, style.css, logic.js, app.js, tests/test_service.py, tests/test_ui.py.
+Открыто: задача #102 встала на этапе 3 из 5; падают tests.test_ui (scripts/style, static files, toolbar controls) и tests.test_service; причины — константы окружения в main.py фиксируются при импорте, каталога web/ ещё нет, нужна ручная правка плана; перерезка этапов не удалась из-за уже существующего tests/test_service.py.
