@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 import httpx
 import uvicorn
@@ -90,7 +91,13 @@ routes = [
     Mount("/app", app=StaticFiles(directory="web", html=True, check_dir=False)),
 ]
 
-app = Starlette(routes=routes, on_startup=[on_startup])
+@asynccontextmanager
+async def lifespan(app: Starlette):
+    await on_startup()
+    yield
+
+
+app = Starlette(routes=routes, lifespan=lifespan)
 
 
 if __name__ == "__main__":
